@@ -1,37 +1,63 @@
-# secureguardian
+# secureguardian 使用说明
 
-#### 介绍
-Enhancing system security through evaluations and fixes.
+  secureguardian 是一款基于《openEuler 安全配置基线》开发的 Linux 系统安全检查工具，旨在帮助系统管理员评估和提高系统的安全性。
 
-#### 软件架构
-软件架构说明
+## 架构设计
+
+  secureguardian的架构旨在针对Linux系统配置进行系统性的安全性评估。它通过模块化脚本方法操作，允许进行广泛的定制和扩展。主要组件包括：
+
+- 检查脚本：为每项安全检查提供的单独脚本，易于更新，以适应新标准或发现。
+- 配置文件：定义执行哪些检查，它们的参数，并管理异常，使得针对不同环境的评估能够量身定制。
+- 执行引擎：协调检查脚本的运行，收集结果，并管理输出格式，支持详细报告以便分析和摘要以便快速概览。
+- 用户界面：基于命令行，允许用户指定检查，查看报告和配置设置。
+
+此结构支持灵活且可扩展的安全审计方法，适应广泛的系统环境和安全要求。
+
+## 功能特性
+
+- 支持灵活的配置，可以根据需要启用或禁用特定的检查项。
+- 提供详细的安全检查报告，包括检查成功、失败项及失败原因，以及对应的解决方案链接。
+- 自动生成 HTML 报告，方便在 Web 浏览器中查看。
+- 支持通过命令行参数指定特定的配置文件进行检查。
+- 检查脚本的执行结果会被存储在 JSON 文件中，并用于生成 HTML 报告。
+
+## 安装
+
+可以通过以下命令安装：
+
+```sh
+sudo yum install jq
+sudo rpm -i secureguardian-<版本号>.rpm
+
+```
+## 使用方法
+
+-执行所有检查：不带任何参数运行 
+```sh
+run_checks 
+```
+命令将执行所有配置文件中启用的检查项，并生成报告。
+-指定配置文件执行检查：使用 -c 或 --config 参数可以指定一个特定的配置文件进行检查。
+
+```sh
+run_checks -c <配置文件名>
+```
+-只执行“要求”的检查项: -r 参数
+
+```sh
+run_checks -r
+```
+
+## 配置说明
+
+   配置文件位于 /usr/local/secureguardian/conf 目录，您可以编辑这些文件来启用或禁用特定的检查项。
+   检查脚本存放在 /usr/local/secureguardian/scripts/checks 目录下，根据不同的检查项组织在不同的子目录中。
+
+## 查看报告
+
+   检查完成后，可以在/usr/local/secureguardian/reports目录下找到HTML格式的报告文件，直接用浏览器打开即可查看。
+
+## 许可
+   SecureGuardian使用Mulan PSL v2协议
 
 
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
