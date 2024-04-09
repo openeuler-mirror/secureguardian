@@ -3,7 +3,7 @@ Version:        1.0.0
 Release:        1
 Summary:        SecureGuardian Security Checks Tool
 License:        Mulan PSL v2
-URL:            https://secureguardian.example.com 
+URL:            https://gitee.com/openeuler/secureguardian
 Source0:        secureguardian-%{version}.tar.gz
 BuildArch:      noarch
 Requires:       jq
