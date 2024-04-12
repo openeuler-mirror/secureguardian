@@ -7,7 +7,6 @@ check_hist_size() {
     # 初始化变量
     local hist_size_target
     local hist_size_actual
-    local file="/etc/profile"
     local issues=0
 
     # 获取参数
@@ -23,7 +22,7 @@ check_hist_size() {
         esac
     done
 
-    # 如果用户没有指定-h参数，则检查是否有设置HISTSIZE，且其值是否在1到100之间
+    # 如果用户没有指定-s参数，则使用默认的历史命令记录数量
     local hist_size=${hist_size_target:-$default_hist_size}
 
     # 从环境变量获取HISTSIZE的当前值
@@ -32,11 +31,6 @@ check_hist_size() {
     # 检查HISTSIZE的当前值是否设置且在指定范围内
     if [[ -z "$hist_size_actual" || "$hist_size_actual" -lt 1 || "$hist_size_actual" -gt "$hist_size" ]]; then
         echo "环境变量 HISTSIZE 设置不符合要求（当前值：$hist_size_actual，期望值：1-$hist_size）。"
-        issues=1
-    fi
-
-    # 检查/etc/profile中HISTSIZE的设置是否符合要求
-    if ! grep -Pq "^HISTSIZE=\s*([1-9]|[1-9][0-9]|100)\s*$" $file; then
         issues=1
     fi
 
