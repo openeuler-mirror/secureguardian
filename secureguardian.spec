@@ -7,6 +7,7 @@ URL:            https://gitee.com/openeuler/secureguardian
 Source0:        secureguardian-%{version}.tar.gz
 BuildArch:      noarch
 Requires:       jq
+Requires:       python3
 
 %description
 SecureGuardian is a comprehensive security checks tool for Linux systems.
