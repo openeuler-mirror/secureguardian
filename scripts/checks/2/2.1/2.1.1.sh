@@ -37,14 +37,14 @@ check_non_login_accounts() {
     # 检查账号是否锁定
     lock_status=$(passwd -S $account | awk '{print $2}')
     if [[ "$lock_status" == "L" || "$lock_status" == "LK" ]]; then
-      echo "账号 $account 已被锁定，不需禁止登录。"
+      #echo "账号 $account 已被锁定，不需禁止登录。"
       continue # 如果账号已被锁定，则跳过
     fi
 
     # 如果账号不应该登录，但未设置为nologin或false，则报错
     shell=$(grep "^$account:" /etc/passwd | cut -d: -f7)
     if [[ "$shell" != "/sbin/nologin" && "$shell" != "/bin/false" ]]; then
-      echo "检测不成功: 账号 $account 应该禁止登录。"
+      echo "检测不成功: 账号 $account 应该禁止登录,如有需要请-e添加例外"
       return 1
     fi
   done
