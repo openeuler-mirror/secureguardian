@@ -209,7 +209,10 @@ execute_checks() {
             echo "," >> "$json_output"
         fi
 
-        output=$(echo "$output" | sed ':a;N;$!ba;s/\n/<br><br>/g')
+        output=$(echo "$output" | sed ':a;N;$!ba;s/\n/<br><br>/g') # 将换行转为HTML换行
+	output=$(echo "$output" | sed 's/[\x00-\x1F\x7F]//g') #去掉控制字符
+	output=$(echo "$output" | sed 's/\r//g')  # 去除所有CR字符	
+
         echo "{\"id\":\"$id\",\"description\":\"$description\",\"level\": \"$level\",\"status\":\"$status\",\"details\":\"$output\",\"link\":\"$BASELINE_DIR/$id.md\"}" >> "$json_output"
     done
     echo "]" >> "$json_output"
