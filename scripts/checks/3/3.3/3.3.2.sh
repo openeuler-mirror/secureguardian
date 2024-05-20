@@ -20,7 +20,6 @@ check_ssh_authentication() {
         return 1
     fi
 
-    # 定义必要的配置值
     declare -A required_configs=(
         [PasswordAuthentication]="yes"
         [PubkeyAuthentication]="yes"
@@ -30,16 +29,20 @@ check_ssh_authentication() {
     )
 
     local key value missing_configs=0
-    local auth_enabled=0  # 追踪是否至少有一种认证方式启用
+    local auth_enabled=0
 
     for key in "${!required_configs[@]}"; do
         value=$(grep -E "^\s*${key}\s+" "$config_file" | awk '{print $2}' | tr -d ' ')
-        if [[ "$key" =~ ^(PasswordAuthentication|PubkeyAuthentication|ChallengeResponseAuthentication)$ ]] && [[ "$value" == "yes" ]]; then
-            auth_enabled=1
-        fi
-        if [[ "$value" != "${required_configs[$key]}" ]]; then
-            echo "检测不成功: $key 配置错误，当前值为'$value'，期望值为'${required_configs[$key]}'"
-            missing_configs=$((missing_configs+1))
+        if [[ "$key" =~ ^(PasswordAuthentication|PubkeyAuthentication|ChallengeResponseAuthentication)$ ]]; then
+            if [[ "$value" == "yes" ]]; then
+                auth_enabled=1
+                continue  # 跳过其他检查，因为已经找到至少一个启用的认证方式
+            fi
+        else
+            if [[ "$value" != "${required_configs[$key]}" ]]; then
+                echo "检测不成功: $key 配置错误，当前值为'$value'，期望值为'${required_configs[$key]}'"
+                missing_configs=$((missing_configs+1))
+            fi
         fi
     done
 
@@ -51,7 +54,7 @@ check_ssh_authentication() {
     if ((missing_configs > 0)); then
         return 1
     else
-        echo "检测成功:所有认证方式配置正确。"
+        echo "检测成功: 所有必要的认证方式至少有一个已被启用，且其他配置正确。"
         return 0
     fi
 }
@@ -61,7 +64,7 @@ while [[ "$#" -gt 0 ]]; do
     case "$1" in
         -c|--config) config_file="$2"; shift ;;
         -\?|--help) usage; exit 0 ;;
-        *) echo "未知选项: $1" >&2; usage; exit 1 ;;
+        * ) echo "未知选项: $1" >&2; usage; exit 1 ;;
     esac
     shift
 done

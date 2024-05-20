@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 初始化例外账号数组
-exceptions=("sync" "shutdown" "halt" "mockbuild")
+exceptions=("sync" "shutdown" "halt" "mockbuild" "root")
 
 # 解析命令行参数
 while getopts "e:" opt; do
