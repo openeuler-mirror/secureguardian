@@ -1,67 +1,47 @@
 #!/bin/bash
 
-# 初始化例外用户列表为空
-exceptions=("halt" "sync" "shutdown")
+# Initialize an array for excluded users
+declare -a excluded_users=("halt" "sync" "shutdown")
 
-# 显示帮助信息的函数
-show_help() {
-  echo "Usage: $0 [-e user1,user2,...]"
-  echo "  -e Specify a comma-separated list of users to exclude from the check."
-  echo "  -h Display this help message and exit."
-}
-
-# 解析命令行参数
-while getopts ":e:h" opt; do
+# Optionally, parse additional excluded users passed as arguments
+while getopts "e:" opt; do
   case ${opt} in
-    e )
-      IFS=',' read -r -a user_exceptions <<< "${OPTARG}"
-      exceptions+=("${user_exceptions[@]}")
-      ;;
-    h )
-      show_help
-      exit 0
-      ;;
-    \? )
-      echo "Invalid option: $OPTARG" 1>&2
-      show_help
-      exit 1
-      ;;
-    : )
-      echo "Invalid option: $OPTARG requires an argument" 1>&2
-      show_help
-      exit 1
-      ;;
+    e ) IFS=',' read -r -a user_input <<< "${OPTARG}"
+        excluded_users+=("${user_input[@]}")
+        ;;
+    \? ) echo "Usage: cmd [-e excluded_user1,excluded_user2,...]"
+        exit 1
+        ;;
   esac
 done
 
-# 检查.forward文件的函数
-check_forward_files() {
-  local home_directories=$(awk -F: '($7 != "/sbin/nologin" && $7 != "/bin/false") {print $6}' /etc/passwd)
-  
-  for home in $home_directories; do
-    # 获取当前用户名
-    user=$(basename "$home")
-    # 如果用户在例外列表中，则跳过检查
-    if [[ " ${exceptions[*]} " =~ " ${user} " ]]; then
-        echo "Skipping user $user"
-        continue
+# Function to check for .netrc files in home directories
+check_netrc_files() {
+  local found=false
+
+  while IFS=: read -r user pass uid gid full home shell; do
+    # Skip users with no login shell or excluded users
+    if [[ "$shell" == "/sbin/nologin" || "$shell" == "/bin/false" || " ${excluded_users[@]} " =~ " ${user} " ]]; then
+      continue
     fi
 
-    # 查找.forward文件
-    local forward_files=$(find "$home" -maxdepth 1 -type f -name ".forward" 2>/dev/null)
-    
-    if [[ ! -z "$forward_files" ]]; then
-      echo "检测失败: 用户 $user 的Home目录下存在.forward文件"
-      return 1
+    # Search for .netrc files
+    if [[ -f "${home}/.netrc" ]]; then
+      echo "检测失败: 用户 ${user} 的Home目录下存在 .netrc 文件"
+      found=true
     fi
-  done
+  done < /etc/passwd
 
-  echo "检查通过，不存在.forward文件。"
-  return 0
+  if [[ "$found" == false ]]; then
+    echo "检测成功: 所有用户的Home目录下均不存在 .netrc 文件。"
+    return 0
+  else
+    return 1
+  fi
 }
 
-# 调用函数并处理返回值
-if check_forward_files; then
+# Run the check and exit with the corresponding status
+if check_netrc_files; then
   exit 0
 else
   exit 1
