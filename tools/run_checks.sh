@@ -47,9 +47,9 @@ done
 
 generate_html_report() {
     json_file="$1"
-    html_file="${json_file%.results.json}.html"
+    html_file="${json_file%.json}.html"
 
-   # 计算总检查项数、成功和失败的数量
+    # 计算总检查项数、成功和失败的数量
     total_checks=$(jq '. | length' "$json_file")
     success_count=$(jq '[.[] | select(.status=="成功")] | length' "$json_file")
     fail_count=$(jq '[.[] | select(.status=="失败")] | length' "$json_file")
@@ -72,10 +72,10 @@ generate_html_report() {
     echo "要求 - 总计：$requirements_total，成功：$requirements_success，失败：$requirements_fail"
     echo "建议 - 总计：$recommendations_total，成功：$recommendations_success，失败：$recommendations_fail"
 
-    # HTML文件头部
+    # 生成HTML文件头部
     cat << EOF > "$html_file"
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <title>检查报告</title>
@@ -83,16 +83,17 @@ generate_html_report() {
         body {
             font-family: Arial, sans-serif;
             margin: 40px;
-            background-color: #f0f0f0;
+            background-color: #f4f4f9; /* 浅灰色背景 */
             color: #333;
         }
         header {
-            background-color: #007bff;
+            background-color: #4a90e2; /* 蓝色 */
             color: #ffffff;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            text-align: left; /* 左对齐 */
         }
         h1 {
             margin: 0;
@@ -105,20 +106,27 @@ generate_html_report() {
             border-collapse: collapse;
             width: 100%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            table-layout: fixed;
+            background-color: #ffffff; /* 表格白色背景 */
         }
         th, td {
             border: 1px solid #dddddd;
             text-align: left;
             padding: 8px;
+            word-wrap: break-word;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #4a90e2; /* 蓝色 */
+            color: white;
         }
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
         .status {
-            width: 100px; /* 设置"状态"列的宽度 */
+            width: 80px; /* 设置"状态"列的宽度 */
+        }
+        .id, .level {
+            width: 50px; /* 设置"ID"和"级别"列的宽度 */
         }
         .success {
             background-color: #d4edda; /* 成功的背景颜色 */
@@ -128,39 +136,149 @@ generate_html_report() {
             background-color: #f8d7da; /* 失败的背景颜色 */
             color: #721c24; /* 失败的文字颜色 */
         }
-        .md-content {
-            margin-top: 20px;
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            margin-bottom: 20px;
+            justify-content: flex-start; /* 左对齐 */
+            border-bottom: 2px solid #ccc;
+        }
+        .subtabs {
+            display: flex;
+            cursor: pointer;
+            margin-bottom: 20px;
+            justify-content: flex-start; /* 左对齐 */
+            border-bottom: 1px solid #ccc;
+        }
+        .tabcontent {
+            display: none;
+        }
+        .subtabcontent {
+            display: none;
+        }
+        .tablinks, .subtablinks {
+            padding: 14px 20px;
+            background-color: #e1e8f0; /* 浅蓝灰色 */
+            border: 1px solid #ccc;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .tablinks.active, .tablinks:hover, .subtablinks.active, .subtablinks:hover {
+            background-color: #4a90e2; /* 蓝色 */
+            color: white;
+        }
+        .tabcontent.active, .subtabcontent.active {
+            display: block;
         }
     </style>
 </head>
 <body>
     <header>
-	<h1>检查报告</h1>
+        <h1>检查报告</h1>
         <p>报告生成时间：${current_time}</p>
-        <p>总检查项数：${total_checks},成功：${success_count}，失败：${fail_count}</p>
-        <p>要求 - 总检查项数：${requirements_total}, 成功：${requirements_success}, 失败：${requirements_fail}</p>
-        <p>建议 - 总检查项数：${recommendations_total}, 成功：${recommendations_success}, 失败：${recommendations_fail}</p>
-        <p>本报告提供了系统安全检查的详细结果，包括每项检查的状态和相关的详细信息。</p>	
-    </header>    	
-	<table>
-        <tr>
-            <th>ID</th>
-            <th>描述</th>
-            <th>级别</th>
-            <th class="status">状态</th>
-            <th>详情</th>
-        </tr>
+        <p>总检查项数：${total_checks}，成功：${success_count}，失败：${fail_count}</p>
+        <p>要求 - 总检查项数：${requirements_total}，成功：${requirements_success}，失败：${requirements_fail}</p>
+        <p>建议 - 总检查项数：${recommendations_total}，成功：${recommendations_success}，失败：${recommendations_fail}</p>
+        <p>本报告提供了系统安全检查的详细结果，包括每项检查的状态和相关的详细信息。</p>
+    </header>
+    <div class="tabs">
+        <button class="tablinks" onclick="openTab(event, '初始部署')">初始部署</button>
+        <button class="tablinks" onclick="openTab(event, '安全访问')">安全访问</button>
+        <button class="tablinks" onclick="openTab(event, '运行和服务')">运行和服务</button>
+        <button class="tablinks" onclick="openTab(event, '日志审计')">日志审计</button>
+    </div>
 EOF
 
-    # 遍历JSON文件中的每个检查项
-    jq -r --arg BASELINE_DIR "$BASELINE_DIR" '.[] | [.id, .description, .level, .status,.details] | @tsv' "$json_file" | while IFS=$'\t' read -r id description level status details; do
-	class=$(if [[ "$status" == "成功" ]]; then echo "success"; else echo "fail"; fi)
-        echo "<tr><td>${id}</td><td>${description}</td><td>${level}</td><td class=\"${class}\">${status}</td><td>${details}</td></tr>" >> "$html_file"
+    # 定义类别和子类别
+    declare -A subcategories
+    subcategories=(
+        ["初始部署"]="1.1_文件系统 1.2_软件"
+        ["安全访问"]="2.1_账户 2.2_口令 2.3_身份认证 2.4_访问控制 2.5_完整性 2.6_数据安全"
+        ["运行和服务"]="3.1_网络 3.2_防火墙 3.3_SSH 3.4_定时任务 3.5_内核 3.6_时间同步"
+        ["日志审计"]="4.1_Audit 4.2_Rsyslog"
+    )
+
+    # 遍历每个类别和子类别
+    for category in "${!subcategories[@]}"; do
+        echo "<div id=\"$category\" class=\"tabcontent\">" >> "$html_file"
+        echo '<div class="subtabs">' >> "$html_file"
+        IFS=' ' read -r -a subcategories_array <<< "${subcategories[$category]}"
+        for subcategory in "${subcategories_array[@]}"; do
+            subcategory_name="${subcategory#*_}"
+            echo "<button class=\"subtablinks\" onclick=\"openSubTab(event, '${category}_${subcategory_name}')\">${subcategory_name}</button>" >> "$html_file"
+        done
+        echo '</div>' >> "$html_file"
+        for subcategory in "${subcategories_array[@]}"; do
+            subcategory_name="${subcategory#*_}"
+            echo "<div id=\"${category}_${subcategory_name}\" class=\"subtabcontent\">" >> "$html_file"
+            echo "    <h3>${subcategory_name}</h3>" >> "$html_file"
+            echo '    <table><tr><th class="id">ID</th><th>描述</th><th class="level">级别</th><th class="status">状态</th><th>详情</th></tr>' >> "$html_file"
+            
+            items=$(jq -r --arg subcategory "${subcategory%%_*}" '[.[] | select(.id | startswith($subcategory)) | [.id, .description, .level, .status, .details]] | .[] | @tsv' "$json_file")
+            while IFS=$'\t' read -r id description level status details; do
+                class=$(if [[ "$status" == "成功" ]]; then echo "success"; else echo "fail"; fi)
+                echo "<tr><td class=\"id\">${id}</td><td>${description}</td><td class=\"level\">${level}</td><td class=\"${class}\">${status}</td><td>${details}</td></tr>" >> "$html_file"
+            done <<< "$items"
+            
+            echo '    </table>' >> "$html_file"
+            echo '</div>' >> "$html_file"
+        done
+        echo '</div>' >> "$html_file"
     done
 
-    # HTML文件尾部
+    # 生成HTML文件尾部
     cat << EOF >> "$html_file"
-    </table>
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks, subtablinks, subtabcontent;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+
+            // Reset subtablinks and subtabcontent
+            subtablinks = document.getElementsByClassName("subtablinks");
+            for (i = 0; i < subtablinks.length; i++) {
+                subtablinks[i].className = subtablinks[i].className.replace(" active", "");
+            }
+            subtabcontent = document.getElementsByClassName("subtabcontent");
+            for (i = 0; i < subtabcontent.length; i++) {
+                subtabcontent[i].style.display = "none";
+            }
+
+            // Activate the first subtab of the selected tab
+            var firstSubtab = document.getElementById(tabName).getElementsByClassName("subtablinks")[0];
+            if (firstSubtab) {
+                firstSubtab.click();
+            }
+        }
+
+        function openSubTab(evt, subTabName) {
+            var i, subtabcontent, subtablinks;
+            subtabcontent = document.getElementsByClassName("subtabcontent");
+            for (i = 0; i < subtabcontent.length; i++) {
+                subtabcontent[i].style.display = "none";
+            }
+            subtablinks = document.getElementsByClassName("subtablinks");
+            for (i = 0; i < subtablinks.length; i++) {
+                subtablinks[i].className = subtablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(subTabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // 默认打开第一个tab
+        document.getElementsByClassName("tablinks")[0].click();
+    </script>
 </body>
 </html>
 EOF
