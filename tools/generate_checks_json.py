@@ -1,8 +1,11 @@
 import json
 import re
+import os
 
 def parse_markdown(md_file_path):
     checks = []
+    if not os.path.exists(md_file_path):
+        raise "The file is not existed, Please make sure... !\n"
     with open(md_file_path, 'r', encoding='utf-8') as file:
         current_id = None
         current_description = None
