@@ -1,4 +1,18 @@
 #!/bin/bash
+# #######################################################################################
+#
+# Copyright (c) KylinSoft Co., Ltd. 2024. All rights reserved.
+# SecureGuardian is licensed under the Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#     http://license.coscl.org.cn/MulanPSL2
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+# PURPOSE.
+# See the Mulan PSL v2 for more details.
+# Description: Security Baseline Check Script for 3.5.20
+#
+# #######################################################################################
 
 # 功能说明：
 # 检查系统的core dump配置是否正确。如果core dump已禁用，验证通过。如果启用，确保core dump文件的路径和权限正确配置。

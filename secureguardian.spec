@@ -37,6 +37,10 @@ ln -s ../local/secureguardian/tools/run_checks.sh %{buildroot}/usr/bin/run_check
 ln -s ../local/secureguardian/tools/run_fixes.sh %{buildroot}/usr/bin/run_fixes
 ln -s ../local/secureguardian/tools/run_restores.sh %{buildroot}/usr/bin/run_restores
 
+# Setting permissions for reports directory
+chmod 700 %{buildroot}/usr/local/secureguardian/reports
+chown -R root:root %{buildroot}/usr/local/secureguardian
+
 %files
 /usr/bin/run_checks
 /usr/bin/run_fixes

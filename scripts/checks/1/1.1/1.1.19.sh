@@ -1,4 +1,18 @@
 #!/bin/bash
+# #######################################################################################
+#
+# Copyright (c) KylinSoft Co., Ltd. 2024. All rights reserved.
+# SecureGuardian is licensed under the Mulan PSL v2.
+# You can use this software according to the terms and conditions of the Mulan PSL v2.
+# You may obtain a copy of Mulan PSL v2 at:
+#     http://license.coscl.org.cn/MulanPSL2
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY OR FIT FOR A PARTICULAR
+# PURPOSE.
+# See the Mulan PSL v2 for more details.
+# Description: Security Baseline Check Script for 1.1.19
+#
+# #######################################################################################
 
 # 检查所有用户的.bashrc和.bash_profile是否设置了LD_LIBRARY_PATH
 check_users_ld_library_path() {

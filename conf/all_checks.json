@@ -101,7 +101,7 @@
       "description": "确保删除文件不必要的SUID和SGID位",
       "level": "要求",
       "script": "scripts/checks/1/1.1/1.1.13.sh",
-      "enabled": false,
+      "enabled": true,
       "parameters": []
     },
     {
