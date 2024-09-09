@@ -793,10 +793,10 @@
       "parameters": []
     },
     {
-      "id": "3.2.12",
-      "description": "应当配置nftables默认拒绝策略",
+      "id": "3.2.11",
+      "description": "应当启用nftables服务",
       "level": "建议",
-      "script": "scripts/checks/3/3.2/3.2.12.sh",
+      "script": "scripts/checks/3/3.2/3.2.11.sh",
       "enabled": true,
       "parameters": []
     },
