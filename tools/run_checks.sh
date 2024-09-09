@@ -346,8 +346,14 @@ execute_checks() {
 	output=$(echo "$output" | sed 's/\r//g')  # 去除所有CR字符	
 
         echo "{\"id\":\"$id\",\"description\":\"$description\",\"level\": \"$level\",\"status\":\"$status\",\"details\":\"$output\",\"link\":\"$BASELINE_DIR/$id.md\"}" >> "$json_output"
+
     done
     echo "]" >> "$json_output"
+    jq . "$json_output" > /dev/null 2>&1
+    if [[ $? -ne 0 ]]; then
+    	echo "生成的JSON文件无效，请检查输出格式。" >&2
+        exit 1
+    fi
 
     echo "所有检查执行完成。"
     generate_html_report "$json_output"

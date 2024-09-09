@@ -23,15 +23,17 @@ function check_audit_rules_for_important_files() {
     local files=("/etc/passwd" "/etc/group" "/etc/shadow" "/etc/gshadow" "/etc/security/opasswd")
     local fail_flag=0
 
+    # 读取 auditctl 输出
+    auditctl_output=$(auditctl -l)
+
     for file in "${files[@]}"; do
-        # 使用宽松的正则表达式来匹配可能存在的空格和其他字符
-        local audit_rule=$(auditctl -l | grep -iE "\-w\s*$file\s*\-p\s*wa")
-        if [[ -z "$audit_rule" ]]; then
+        # 正则表达式匹配 "-w 文件 -p wa"，考虑到可能的多余空格
+        local regex="-w\s+$file\s+-p\s+wa"
+        if [[ ! "$auditctl_output" =~ $regex ]]; then
             echo "检测失败: 审计规则未正确配置或未配置用于监控文件 $file 的规则。"
             fail_flag=1
         else
             echo "检测成功: 已正确配置监控文件 $file 的审计规则。"
-            echo "当前规则: $audit_rule"
         fi
     done
 
