@@ -68,7 +68,7 @@ def write_json(checks, json_file_path):
         json.dump({"checks": checks}, file, indent=4, ensure_ascii=False)
         print("Written {} checks to {}".format(len(checks), json_file_path))  # 打印写入的检查数量
 
-md_file_path = '/usr/local/secureguardian/baseline/release/openEuler安全配置基线.md1'
+md_file_path = '/usr/local/secureguardian/baseline/release/openEuler安全配置基线.md'
 json_file_path = 'all_checks_release.json'
 checks = parse_markdown(md_file_path)
 write_json(checks, json_file_path)
