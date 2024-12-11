@@ -66,6 +66,20 @@ ensure_auditd_enabled_and_active() {
 	fi
 }
 
+# 添加 --self-test 兼容参数
+while [[ "$#" -gt 0 ]]; do
+	case "$1" in
+		--self-test)
+			ensure_auditd_enabled_and_active
+			exit $? ;;
+		*)
+			echo "无效选项: $1"
+			echo "仅接受 --self-test 参数, 或不加参数"
+			exit 1 ;;
+	esac
+done
+
+
 ensure_auditd_enabled_and_active
 
 echo "已确保 auditd 服务启用、运行"
