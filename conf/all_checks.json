@@ -681,6 +681,14 @@
       "parameters": []
     },
     {
+      "id": "2.5.3",
+      "description": "应当启用DIM度量",
+      "level": "建议",
+      "script": "scripts/checks/2/2.5/2.5.3.sh",
+      "enabled": true,
+      "parameters": []
+    },
+    {
       "id": "2.6.1",
       "description": "应当启用haveged服务",
       "level": "建议",
@@ -1221,6 +1229,38 @@
       "description": "应当启用seccomp",
       "level": "建议",
       "script": "scripts/checks/3/3.5/3.5.23.sh",
+      "enabled": true,
+      "parameters": []
+    },
+    {
+      "id": "3.5.24",
+      "description": "应当开启BPF加固功能",
+      "level": "建议",
+      "script": "scripts/checks/3/3.5/3.5.24.sh",
+      "enabled": true,
+      "parameters": []
+    },
+    {
+      "id": "3.5.25",
+      "description": "应当开启内核模块签名",
+      "level": "建议",
+      "script": "scripts/checks/3/3.5/3.5.25.sh",
+      "enabled": true,
+      "parameters": []
+    },
+    {
+      "id": "3.5.26",
+      "description": "禁止开启kexec功能",
+      "level": "建议",
+      "script": "scripts/checks/3/3.5/3.5.26.sh",
+      "enabled": true,
+      "parameters": []
+    },
+    {
+      "id": "3.5.27",
+      "description": "确保内核触发错误后直接退出",
+      "level": "建议",
+      "script": "scripts/checks/3/3.5/3.5.27.sh",
       "enabled": true,
       "parameters": []
     },
