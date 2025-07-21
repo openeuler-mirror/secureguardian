@@ -4036,6 +4036,90 @@ aide（advanced intrusion detection environment）是一款入侵检测工具，
   # aide --update
   # mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
   ```
+### 2.5.3 应当启用DIM度量
+
+**级别：** 建议
+
+**适用版本：** 全部
+
+**规则说明：**
+
+DIM（Dynamic Integrity Measurement）动态完整性度量特性是内核提供的运行时代码段完整性度量功能。开启DIM后，可基于用户自定义的策略为内核、内核模块和应用程序提供运行时完整性度量，度量结果可被用于本地以及远程完整性证明。
+
+系统未开启DIM度量功能时，无法识别到攻击者对程序内存中代码段的篡改行为，导致系统面临代码段被注入shellcode的安全风险。
+
+DIM的策略配置与具体环境有关，通常情况下只针对内核、内核模块以及高权限进程开启该保护。如果策略配置不当，可能导致性能及内存开销过大，建议用户根据自身情况决定是否开启DIM，并配置正确的策略。
+
+**规则影响：**
+
+* 开启DIM度量会导致系统启动时间和文件访问时间有轻微增加。
+* 如果策略配置不当（如度量范围过大或度量间隔太短），可导致性能开销太高，影响业务正常运行。
+
+**检查方法：**
+
+* 检查是否安装了DIM软件包，如果返回结果没有dim和dim_tools则表示dim软件包安装不全：
+
+  ```bash
+  # yum list installed | grep dim
+  ```
+
+* 检查是否加载了DIM内核模块，如果没有dim_monitor和dim_core则表示dim内核模块加载不全：
+
+  ```bash
+  # lsmod | grep dim
+  ```
+
+* 检查是否配置了DIM度量策略，如果内容为空则表示没有配置DIM策略：
+
+  ```bash
+  # cat /etc/dim/policy
+  ```
+
+* 确认DIM开启并正确配置了策略后，查看/sys/kernel/security/dim/runtime_measurement_count文件中存储的度量记录数，如果该值大于1，则表示DIM策略已经生效：
+
+  ```bash
+  # cat /sys/kernel/security/dim/runtime_measurements_count
+  ```
+
+**修复方法：**
+
+* 安装DIM软件包：
+
+  ```bash
+  # yum install dim dim_tools
+  ```
+
+* 加载DIM内核模块：
+
+  ```bash
+  # modprobe dim_core
+  # modprobe dim_monitor
+  ```
+
+* 使用dim_gen_baseline生成静态基线，可根据实际需求为内核、内核模块或可执行文件生成静态基线。以可执行文件/bin/bash为例：
+
+  ```bash
+  # mkdir -p /etc/dim/digest_list
+  # dim_gen_baseline /bin/bash -o /etc/dim/digest_list/test.hash
+  ```
+
+* 配置度量策略，写入到/etc/dim/policy中：
+
+  ```bash
+  # echo "measure obj=BPRM_TEXT path=/bin/bash" > /etc/dim/policy
+  ```
+
+* 触发动态基线建立
+
+  ```bash
+  # echo 1 > /sys/kernel/security/dim/baseline_init
+  ```
+
+* 设置度量间隔时间：
+
+  ```bash
+  # echo 1 > /sys/kernel/security/dim/interval
+  ```
 ## 2.6 数据安全
 ### 2.6.1 应当启用haveged服务
 
@@ -7422,7 +7506,161 @@ Seccomp:        2
 **修复方法：**
 
 可以在业务进程中通过调用libseccomp接口进行seccomp相关规则的配置，具体配置方法，可以参考libseccomp的开源帮助文档。
+### 3.5.24 应当开启BPF加固功能
 
+**级别：** 要求
+
+**适用版本：** 全部
+
+**规则说明：**
+
+BPF （Berkeley Packet Filter）是一个用于在运行时在内核中动态加载和执行字节码的系统。它用于许多 Linux 内核子系统，例如网络、跟踪和安全。BFP代码支持JIT编译执行和解释执行。其中JIT编译执行面临JIT喷射攻击的风险，攻击者可能利用该风险攻击内核进行提权。BPF加固功能会对JIT编译执行进行加固，缓解某些类型的JIT喷射攻击，降低内核面临的攻击风险。
+
+**规则影响：**
+
+开启BPF加固后，会导致执行性能降低以及牺牲BPF的部分跟踪调试能力。可根据实际需求对所有BPF代码开启加固或只对非特权BPF代码开启加固。
+
+**检查方法：**
+
+输入以下命令并检查返回的数值，其中0代表未开启加固，1代表对非特权代码开启加固，2代表对所有代码开启加固：
+
+```bash
+# cat /proc/sys/net/core/bpf_jit_harden
+2
+```
+
+**修复方法：**
+
+- 可以通过修改/proc/sys/net/core/bpf_jit_harden的值来开启BPF加固。请根据实际场景需求将值设置为1或2：
+
+  ```bash
+  # echo 2 > /proc/sys/net/core/bpf_jit_harden
+  ```
+
+- 或者通过修改/etc/sysctl.conf文件使其永久生效：
+
+  ```bash
+  net.core.bpf_jit_harden=2
+  ```
+
+  然后启用该配置：
+
+  ```bash
+  # sysctl -p /etc/sysctl.conf
+  ```
+### 3.5.25 应当启动内核模块签名
+
+**级别：** 要求
+
+**适用版本：** 全部
+
+**规则说明：**
+
+内核模块签名以一定格式在内核模块文件末尾添加签名信息，系统在加载内核模块时检查签名是否与内核中预设的公钥匹配。这样可以验证内核模块文件的真实性和完整性，防止系统加载未经认证的恶意内核模块。
+
+**规则影响：**
+
+无法加载未签名的内核模块。
+
+**检查方法：**
+
+通过检查启动参数检验是否开启内核模块签名，若有返回值则说明未开启，反之则说明开启。
+
+```bash
+# cat /proc/cmdline | grep -i "module.sig_enforce"
+```
+
+**修复方法：**
+
+若未开启内核模块签名，需要编辑grub.cfg文件，在启动参数中添加module.sig_enforce选项。
+
+```bash
+# vim /boot/efi/EFI/openEuler/grub.cfg
+```
+### 3.5.26 禁止开启kexec功能
+
+**级别：** 要求
+
+**适用版本：** 全部
+
+**规则说明：**
+
+kexec允许替换当前正在运行的内核，可能被攻击者利用加载恶意内核。若使用场景无内核升级需求，建议关闭kexec功能。
+
+**规则影响：**
+
+无法使用kexec升级内核。
+
+**检查方法：**
+
+检查/proc/sys/kernel/kexec_load_disabled文件的值，0表示启用kexec，1表示关闭kexec：
+
+```bash
+# cat /proc/sys/kernel/kexec_load_disabled
+kernel.kexec_load_disabled=1
+```
+
+**修复方法：**
+
+- 可以通过修改/proc/sys/kernel/kexec_load_disabled的值来临时关闭kexec：
+
+  ```bash
+  # echo 1 > /proc/sys/kernel/kexec_load_disabled
+  ```
+
+- 或者通过修改/etc/sysctl.conf文件使其永久生效：
+
+  ```bash
+  kernel.kexec_load_disabled=1
+  ```
+
+  然后启用该配置：
+
+  ```bash
+  # sysctl -p /etc/sysctl.conf
+  ```
+### 3.5.27 确保内核触发错误后直接退出
+
+**级别：** 要求
+
+**适用版本：** 全部
+
+**规则说明：**
+
+系统内核在发现一些非致命错误时会触发oops，如果在oops发生后内核仍然继续运行，可能会导致错误依然存在并影响内核的稳定性和可靠性。因此，建议设置使能panic_on_oops，在发生oops后直接panic退出而不是继续运行。
+
+**规则影响：**
+
+内核触发oops后会直接panic，不会继续运行。
+
+**检查方法：**
+
+检查/proc/sys/kernel/panic_on_oops文件的值，0表示关闭，1表示开启：
+
+```bash
+# cat /proc/sys/kernel/panic_on_oops
+1
+```
+
+**修复方法：**
+
+- 可以通过修改/proc/sys/kernel/panic_on_oops的值来临时修改oops行为：
+
+  ```bash
+  # echo 1 > /proc/sys/kernel/panic_on_oops
+  ```
+
+- 或者通过修改/etc/sysctl.conf文件使其永久生效：
+
+  ```bash
+  kernel.panic_on_oops=1
+  ```
+
+  然后启用该配置：
+
+  ```bash
+  # sysctl -p /etc/sysctl.conf
+  ```
 ## 3.6 时间同步
 ### 3.6.1 应当正确配置ntpd服务
 
